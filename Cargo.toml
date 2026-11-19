@@ -9,3 +9,7 @@ crate-type = ["cdylib"]
 
 [dependencies]
 zed_extension_api = "=0.6.0"
+[workspace]
+members = ["tools"]
+default-members = ["."]
+resolver = "2"

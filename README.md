@@ -4,20 +4,22 @@ Stack Tree-sitter grammar and local stdio LSP integration. This project is not r
 
 ## Build and test
 
-Prerequisites: Node/npm, Rust/Cargo with `wasm32-wasip2`, a C compiler for native corpus tests, and a local Stack language server.
+Prerequisites: Rust/Cargo with `wasm32-wasip2`, Node.js for evaluating `grammar.js` during generation, a C compiler for native corpus tests, and a local Stack language server. npm is not used.
 
 ```powershell
-npm ci
-npm run generate
-npm test
+cargo install tree-sitter-cli --version =0.25.10 --locked --root .local/tree-sitter-cli
+cargo run --locked -p stack-dev -- generate
+cargo run --locked -p stack-dev -- test
+cargo run --locked -p stack-dev -- queries
 cargo build --locked --target wasm32-wasip2
-cargo fmt -- --check
+cargo fmt --all -- --check
 cargo clippy --locked --target wasm32-wasip2 -- -D warnings
-node scripts/stdio-smoke.cjs E:/projects/rust/stack-lang-server/target/debug/stack-lang-server.exe
+cargo clippy --locked -p stack-dev -- -D warnings
+cargo run --locked -p stack-dev -- smoke E:/projects/rust/stack-lang-server/target/debug/stack-lang-server.exe
 ./scripts/prepare-dev.ps1
 ```
 
-CLI 0.25.10 is pinned by package-lock.json; generation uses ABI 14 for compatibility. Generated C and headers are committed; downloaded tools and compiled binaries are ignored.
+The Rust development tool in `tools/` checks for CLI 0.25.10 in `.local/tree-sitter-cli/bin`, then PATH; it rejects other versions. Generation uses ABI 14 for compatibility. Generated C and headers are committed; downloaded CLI binaries and compiled artifacts are ignored. The extension and development tool share the root Cargo workspace and lockfile. Default workspace commands build only the extension; use `-p stack-dev` for native tooling.
 
 ## Install the local dev extension
 
@@ -37,4 +39,4 @@ Defaults: `lens_enabled=false`, `ini_path=""`. Set `lsp.stack-lang-server.initia
 
 This first grammar is not a replacement for the LSP parser. Advanced annotations, destructuring, anonymous functions and string interpolation need further coverage. SQL stays string content; resources, dictionaries, standalone SQL, snippets and distribution are later stages.
 
-Run `npm run test:queries` to validate Zed queries against the parser.
+The native `smoke` command copies the supplied server into `.local/stdio smoke/server with spaces.exe`, uses two isolated workspace folders, and writes `trace.jsonl`, `results.json` and `stderr.txt` there. It checks hover, the completion response shape (an empty list is valid), symbols, semantic tokens, formatting, diagnostic error/clear and shutdown. It waits for Stack readiness and diagnostics with timeouts; it is not a Zed UI test.

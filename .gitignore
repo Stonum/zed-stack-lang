@@ -3,7 +3,6 @@
 /.local/
 /docs/
 
-/node_modules/
 /grammars/stack/*.wasm
 /grammars/stack/.cache/
 
