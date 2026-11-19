@@ -37,6 +37,26 @@ Defaults: `lens_enabled=false`, `ini_path=""`. Set `lsp.stack-lang-server.initia
 
 `.prg`, `.hdl`, `.rpt` and uppercase equivalents share Stack syntax. Implemented: case-insensitive Russian/English keywords, functions, classes/methods, declarations, conditionals, loops, exceptions, switch, operator precedence, calls/members/subscripts, collections, numbers/dates/times, quoted and multiline strings, comments, and RPT Form Feed headers/sections. Queries provide highlights, bracket pairs, indentation and outline. Tree-sitter recovery preserves subsequent declarations after malformed statements; missing delimiters may produce ERROR/MISSING nodes while editing.
 
-This first grammar is not a replacement for the LSP parser. Advanced annotations, destructuring, anonymous functions and string interpolation need further coverage. SQL stays string content; resources, dictionaries, standalone SQL, snippets and distribution are later stages.
+This first grammar is not a replacement for the LSP parser. Advanced annotations, destructuring, anonymous functions and string interpolation need further coverage. Embedded SQL stays string content. Resources, dictionaries and opt-in standalone SQL are described below; snippets and distribution are later stages.
 
-The native `smoke` command copies the supplied server into `.local/stdio smoke/server with spaces.exe`, uses two isolated workspace folders, and writes `trace.jsonl`, `results.json` and `stderr.txt` there. It checks hover, the completion response shape (an empty list is valid), symbols, semantic tokens, formatting, diagnostic error/clear and shutdown. It waits for Stack readiness and diagnostics with timeouts; it is not a Zed UI test.
+## Resources and SQL
+
+Stack Resource uses LSP ID `stack-resource`, tab size 3; Stack Dictionary uses `stack-dictionary`, tab size 4. Both use the MIT XML grammar pinned in extension.toml. Upstream highlights and license are retained. No XML-wide suffix is claimed.
+
+Default suffixes cover rx, rx_api, rxz, rxi, rxe, rx_z in lower/uppercase, plus observed RX_b2b. Other real variants include rx_api_google_auth, RX_SURVEY, rx_zi_gis_dlg and RX_ZI_GIS_temp. Suffixes are literal, not globs. Merge [stack-project.json](examples/stack-project.json) into the Stack project's `.zed/settings.json` for arbitrary rx variants and case. This opt-in glob also matches future rx suffixes; narrow it if your project has unrelated rx files. Explicit tab sizes override user settings.
+
+Install Zed's existing SQL extension (tested 1.1.8). The example enables `stack-sql-server` only in that project, with protocol ID `sql`. This separate opt-in registration launches its own process using `lsp.stack-sql-server.binary`, falling back to `lsp.stack-lang-server.binary`. Configure SQL initialization options under `lsp.stack-sql-server.initialization_options`; defaults disable lenses and use workspace discovery. The example selects Stack as SQL's sole server; use `["stack-sql-server", "..."]` to retain others. Remove this entry and restart servers to opt out. Keep this setting project-local.
+
+Zed 1.29.2 supports `opt_in_languages`, but a shared running server can still receive SQL documents, so SQL deliberately has a separate registration. No universal SQL language or injection highlighting is supplied.
+
+Additional native query checks, without npm:
+
+```powershell
+git clone https://github.com/tree-sitter-grammars/tree-sitter-xml .local/tree-sitter-xml
+git -C .local/tree-sitter-xml checkout 5000ae8f22d11fbe93939b05c1e37cf21117162d
+cargo run --locked -p stack-dev -- xml-queries
+```
+
+The native smoke additionally opens/formats resources, dictionaries and SQL. Its IDs are test inputs; editor IDs require the separate Zed trace. Smoke artifacts live in `.local/lsp-smoke`. Closed-file watching, dynamic workspace roots and the extended editor acceptance matrix remain unverified; SQL injection highlighting is not provided.
+
+The native `smoke` command copies the supplied server into `.local/lsp-smoke/server with spaces.exe`, uses two isolated workspace folders, and writes `trace.jsonl`, `results.json` and `stderr.txt` there. It checks hover, the completion response shape (an empty list is valid), symbols, semantic tokens, formatting, diagnostic error/clear and shutdown. It waits for Stack readiness and diagnostics with timeouts; it is not a Zed UI test.

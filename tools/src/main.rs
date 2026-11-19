@@ -21,11 +21,15 @@ fn main() -> Result<()> {
         Some("generate") => grammar(root, "generate"),
         Some("test") => grammar(root, "test"),
         Some("queries") => grammar(root, "queries"),
+        Some("xml-queries") => grammar(root, "xml-queries"),
         Some("smoke") => smoke(
             root,
             Path::new(&args.next().ok_or("Expected server executable path")?),
         ),
-        _ => Err("Usage: cargo run -p stack-dev -- <generate|test|queries|smoke SERVER>".into()),
+        _ => Err(
+            "Usage: cargo run -p stack-dev -- <generate|test|queries|xml-queries|smoke SERVER>"
+                .into(),
+        ),
     }
 }
 
@@ -56,7 +60,11 @@ fn grammar(root: &Path, action: &str) -> Result<()> {
     }
     let run = |args: &[&str]| -> Result<()> {
         let status = Command::new(&cli)
-            .current_dir(root.join("grammars/stack"))
+            .current_dir(if action == "xml-queries" {
+                root.join(".local/tree-sitter-xml/xml")
+            } else {
+                root.join("grammars/stack")
+            })
             .args(args)
             .status()?;
         if !status.success() {
@@ -65,6 +73,19 @@ fn grammar(root: &Path, action: &str) -> Result<()> {
         Ok(())
     };
     match action {
+        "xml-queries" => {
+            for language in ["stack-resource", "stack-dictionary"] {
+                for query in ["highlights", "brackets", "indents", "outline"] {
+                    run(&[
+                        "query",
+                        &format!("../../../languages/{language}/{query}.scm"),
+                        "../../../examples/fixtures/sample.rx_api",
+                        "--quiet",
+                    ])?;
+                }
+            }
+            Ok(())
+        }
         "generate" => run(&["generate", "--abi", "14"]),
         "test" => run(&["test"]),
         "queries" => {
@@ -74,6 +95,18 @@ fn grammar(root: &Path, action: &str) -> Result<()> {
                     &format!("../../languages/stack/{query}.scm"),
                     "-n",
                     "1",
+                    "--quiet",
+                ])?;
+                run(&[
+                    "query",
+                    &format!("../../languages/stack/{query}.scm"),
+                    "../../examples/fixtures/sample.prg",
+                    "--quiet",
+                ])?;
+                run(&[
+                    "query",
+                    &format!("../../languages/stack/{query}.scm"),
+                    "../../examples/fixtures/sample.hdl",
                     "--quiet",
                 ])?;
                 println!("{query}: OK");
@@ -270,7 +303,7 @@ fn nonempty(value: &Value) -> bool {
 }
 
 fn smoke(root: &Path, source: &Path) -> Result<()> {
-    let base = root.join(".local/stdio smoke");
+    let base = root.join(".local/lsp-smoke");
     fs::create_dir_all(&base)?;
     let executable = base.join(if cfg!(windows) {
         "server with spaces.exe"
@@ -342,6 +375,48 @@ fn smoke(root: &Path, source: &Path) -> Result<()> {
     for (version, content, errors) in [(2, "func broken( {\n", true), (3, text, false)] {
         client.notification("textDocument/didChange", json!({"textDocument":{"uri":doc["uri"],"version":version},"contentChanges":[{"text":content}]}))?;
         client.diagnostics_for(version, errors)?;
+    }
+    for (name, language, text, tab) in [
+        (
+            "resource.rx_api",
+            "stack-resource",
+            "<resources><item name=\"Example\"/></resources>\n",
+            3,
+        ),
+        (
+            "dictionary.xdic",
+            "stack-dictionary",
+            "<dictionary><table name=\"Example\"/></dictionary>\n",
+            4,
+        ),
+        ("query.sql", "sql", "select 1 as example;\n", 4),
+    ] {
+        let path = roots[0].join(name);
+        fs::write(&path, text)?;
+        let document = json!({"uri":uri(&path)?});
+        client.diagnostics.clear();
+        client.notification("textDocument/didOpen", json!({"textDocument":{"uri":document["uri"],"languageId":language,"version":1,"text":text}}))?;
+        client.diagnostics_for(1, false)?;
+        let edits = client.request("textDocument/rangeFormatting", json!({"textDocument":document,"range":{"start":{"line":0,"character":0},"end":{"line":1,"character":0}},"options":{"tabSize":tab,"insertSpaces":true}}))?;
+        if !edits.is_array() {
+            return Err(format!("Invalid formatting result for {name}").into());
+        }
+        for (version, content, errors) in [
+            (
+                2,
+                if language == "sql" {
+                    "select ("
+                } else {
+                    "<broken"
+                },
+                true,
+            ),
+            (3, text, false),
+        ] {
+            client.notification("textDocument/didChange", json!({"textDocument":{"uri":document["uri"],"version":version},"contentChanges":[{"text":content}]}))?;
+            client.diagnostics_for(version, errors)?;
+        }
+        results[name] = json!({"languageId":language,"formatting":edits});
     }
     client.request("shutdown", Value::Null)?;
     client.notification("exit", Value::Null)?;

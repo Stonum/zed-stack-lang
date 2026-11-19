@@ -15,7 +15,15 @@ impl zed::Extension for StackExtension {
         worktree: &Worktree,
     ) -> Result<Command> {
         let settings = LspSettings::for_worktree(id.as_ref(), worktree)?;
-        let binary = settings.binary;
+        let binary = settings.binary.or_else(|| {
+            if id.as_ref() == "stack-sql-server" {
+                LspSettings::for_worktree("stack-lang-server", worktree)
+                    .ok()
+                    .and_then(|s| s.binary)
+            } else {
+                None
+            }
+        });
         let command = binary.as_ref().and_then(|b| b.path.clone())
             .or_else(|| worktree.which("stack-lang-server"))
             .ok_or("Stack language server was not found. Set lsp.stack-lang-server.binary.path or add stack-lang-server to PATH.")?;

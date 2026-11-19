@@ -1,0 +1,9 @@
+name = "Stack Dictionary"
+grammar = "xml"
+path_suffixes = ["xdic", "XDIC"]
+tab_size = 4
+block_comment = ["<!-- ", " -->"]
+brackets = [
+ { start = "<", end = ">", close = false, newline = false },
+ { start = "\"", end = "\"", close = true, newline = false, not_in = ["string", "comment"] },
+]

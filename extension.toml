@@ -7,5 +7,16 @@ description = "language server for STACK software package"
 
 [language_servers.stack-lang-server]
 name = "stack lang server"
-languages = ["Stack"]
-language_ids = { Stack = "stack" }
+languages = ["Stack", "Stack Resource", "Stack Dictionary"]
+language_ids = { Stack = "stack", "Stack Resource" = "stack-resource", "Stack Dictionary" = "stack-dictionary" }
+
+[language_servers.stack-sql-server]
+name = "Stack SQL server (opt-in)"
+languages = ["SQL"]
+language_ids = { SQL = "sql" }
+opt_in_languages = ["SQL"]
+
+[grammars.xml]
+repository = "https://github.com/tree-sitter-grammars/tree-sitter-xml"
+rev = "5000ae8f22d11fbe93939b05c1e37cf21117162d"
+path = "xml"

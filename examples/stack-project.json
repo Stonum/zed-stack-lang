@@ -1,0 +1,8 @@
+{
+  "file_types": { "Stack Resource": ["**/*.[rR][xX]*"] },
+  "languages": {
+    "Stack Resource": { "tab_size": 3, "formatter": "language_server" },
+    "Stack Dictionary": { "tab_size": 4, "formatter": "language_server" },
+    "SQL": { "language_servers": ["stack-sql-server"], "formatter": "language_server" }
+  }
+}

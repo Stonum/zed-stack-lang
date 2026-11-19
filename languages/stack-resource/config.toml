@@ -1,0 +1,9 @@
+name = "Stack Resource"
+grammar = "xml"
+path_suffixes = ["rx", "RX", "rx_api", "RX_API", "rxz", "RXZ", "rxi", "RXI", "rxe", "RXE", "rx_z", "RX_Z", "rx_b2b", "RX_b2b", "RX_B2B"]
+tab_size = 3
+block_comment = ["<!-- ", " -->"]
+brackets = [
+ { start = "<", end = ">", close = false, newline = false },
+ { start = "\"", end = "\"", close = true, newline = false, not_in = ["string", "comment"] },
+]
