@@ -1,0 +1,99 @@
+==================
+Report sections
+==================
+Example.Report
+.CloseWindow = 1;
+{ var date = 01.01.2027; }
+print
+{ var time = 10:55:55; }
+
+---
+(source_file
+  (report_header
+    (report_name))
+  (expression_statement
+    (assignment_expression
+      (member_expression
+        (identifier))
+      (number)))
+  (block
+    (variable_declaration
+      (keyword)
+      (variable_declarator
+        (identifier)
+        (date))))
+  (report_section
+    (report_name))
+  (block
+    (variable_declaration
+      (keyword)
+      (variable_declarator
+        (identifier)
+        (time)))))
+
+==================
+Incomplete block
+==================
+func edited(a) {
+ var value = a + 1;
+
+---
+(source_file
+  (ERROR
+    (keyword)
+    (qualified_name
+      (identifier))
+    (parameters
+      (parameter
+        (identifier)))
+    (variable_declaration
+      (keyword)
+      (variable_declarator
+        (identifier)
+        (binary_expression
+          (identifier)
+          (number))))))
+
+==================
+Recovery before next declaration
+==================
+var broken = ;
+func intact() { return 2; }
+
+---
+(source_file
+  (variable_declaration
+    (keyword)
+    (variable_declarator
+      (identifier))
+    (ERROR))
+  (function_declaration
+    (keyword)
+    (qualified_name
+      (identifier))
+    (parameters)
+    (block
+      (return_statement
+        (keyword)
+        (number)))))
+
+==================
+Incomplete call
+==================
+func stable() {}
+result = stable(
+
+---
+(source_file
+  (function_declaration
+    (keyword)
+    (qualified_name
+      (identifier))
+    (parameters)
+    (block))
+  (expression_statement
+    (assignment_expression
+      (identifier)
+      (call_expression
+        (identifier)
+        (arguments (MISSING ")"))))))

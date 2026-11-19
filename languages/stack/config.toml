@@ -1,0 +1,13 @@
+name = "Stack"
+grammar = "stack"
+path_suffixes = ["prg", "hdl", "rpt", "PRG", "HDL", "RPT"]
+line_comments = ["# "]
+autoclose_before = ";:.,=}])> \n\t"
+brackets = [
+ { start = "{", end = "}", close = true, newline = true },
+ { start = "[", end = "]", close = true, newline = true },
+ { start = "(", end = ")", close = true, newline = true },
+ { start = "\"", end = "\"", close = true, newline = false, not_in = ["string", "comment"] },
+ { start = "'", end = "'", close = true, newline = false, not_in = ["string", "comment"] },
+ { start = "`", end = "`", close = true, newline = false, not_in = ["string", "comment"] },
+]

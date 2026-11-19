@@ -2,3 +2,12 @@
 /extension.wasm
 /.local/
 /docs/
+
+/node_modules/
+/grammars/stack/*.wasm
+/grammars/stack/.cache/
+
+/grammars/stack/parser.obj
+/grammars/stack/parser.lib
+/grammars/stack/parser.exp
+/grammars/*.wasm

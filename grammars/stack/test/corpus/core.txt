@@ -1,0 +1,211 @@
+==================
+Bilingual functions and precedence
+==================
+ФУНКЦИЯ Сумма(a, b = 2) { перем результат = a + b * 3; вернуть результат; }
+func empty() {}
+---
+
+(source_file
+  (function_declaration
+    (keyword)
+    (qualified_name
+      (identifier))
+    (parameters
+      (parameter
+        (identifier))
+      (parameter
+        (identifier)
+        (number)))
+    (block
+      (variable_declaration
+        (keyword)
+        (variable_declarator
+          (identifier)
+          (binary_expression
+            (identifier)
+            (binary_expression
+              (identifier)
+              (number)))))
+      (return_statement
+        (keyword)
+        (identifier))))
+  (function_declaration
+    (keyword)
+    (qualified_name
+      (identifier))
+    (parameters)
+    (block)))
+
+==================
+Collections and loops
+==================
+var items = @[1, null, true];
+var obj = @{value: 1};
+var map = @(key: "value");
+for (var i = 0; i < 3; i++) { items[i] += 2; }
+длявсех (перем item в items) { если (item != нуль) print(item); иначе прервать; }
+---
+
+(source_file
+  (variable_declaration
+    (keyword)
+    (variable_declarator
+      (identifier)
+      (array
+        (number)
+        (null
+          (keyword))
+        (boolean
+          (keyword)))))
+  (variable_declaration
+    (keyword)
+    (variable_declarator
+      (identifier)
+      (object
+        (pair
+          (identifier)
+          (number)))))
+  (variable_declaration
+    (keyword)
+    (variable_declarator
+      (identifier)
+      (map
+        (pair
+          (identifier)
+          (string)))))
+  (for_statement
+    (keyword)
+    (keyword)
+    (variable_declarator
+      (identifier)
+      (number))
+    (binary_expression
+      (identifier)
+      (number))
+    (update_expression
+      (identifier))
+    (block
+      (expression_statement
+        (assignment_expression
+          (subscript_expression
+            (identifier)
+            (identifier))
+          (number)))))
+  (forall_statement
+    (keyword)
+    (keyword)
+    (identifier)
+    (keyword)
+    (identifier)
+    (block
+      (if_statement
+        (keyword)
+        (parenthesized_expression
+          (binary_expression
+            (identifier)
+            (null
+              (keyword))))
+        (expression_statement
+          (call_expression
+            (identifier)
+            (arguments
+              (identifier))))
+        (keyword)
+        (jump_statement
+          (keyword))))))
+
+==================
+Class and exceptions
+==================
+class Example extends Base { constructor() { this.x = 0; } get value() { return this.x; } }
+try { work(); } catch (err) { throw err; } finally { cleanup(); }
+switch (x) { case 1: break; else debug; }
+---
+
+(source_file
+  (class_declaration
+    (keyword)
+    (identifier)
+    (keyword)
+    (qualified_name
+      (identifier))
+    (method_declaration
+      (identifier)
+      (parameters)
+      (block
+        (expression_statement
+          (assignment_expression
+            (member_expression
+              (identifier)
+              (identifier))
+            (number)))))
+    (method_declaration
+      (keyword)
+      (identifier)
+      (parameters)
+      (block
+        (return_statement
+          (keyword)
+          (member_expression
+            (identifier)
+            (identifier))))))
+  (try_statement
+    (keyword)
+    (block
+      (expression_statement
+        (call_expression
+          (identifier)
+          (arguments))))
+    (keyword)
+    (parameters
+      (parameter
+        (identifier)))
+    (block
+      (return_statement
+        (keyword)
+        (identifier)))
+    (keyword)
+    (block
+      (expression_statement
+        (call_expression
+          (identifier)
+          (arguments)))))
+  (switch_statement
+    (keyword)
+    (parenthesized_expression
+      (identifier))
+    (switch_clause
+      (keyword)
+      (number)
+      (jump_statement
+        (keyword)))
+    (switch_clause
+      (keyword)
+      (jump_statement
+        (keyword)))))
+
+==================
+Comments and multiline strings
+==================
+# Stack comment
+// comment
+/* block */
+var text = `first
+second`;
+var quoted = "escaped \" text";
+---
+
+(source_file
+  (comment)
+  (comment)
+  (comment)
+  (variable_declaration
+    (keyword)
+    (variable_declarator
+      (identifier)
+      (string)))
+  (variable_declaration
+    (keyword)
+    (variable_declarator
+      (identifier)
+      (string))))
