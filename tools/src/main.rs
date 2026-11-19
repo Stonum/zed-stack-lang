@@ -245,20 +245,28 @@ impl Client {
         self.send(json!({"method":method,"params":params}))
     }
 
-    fn diagnostics_for(&mut self, version: u64, errors: bool) -> Result<()> {
+    fn diagnostics_for(&mut self, uri: &str, version: u64, errors: bool) -> Result<()> {
         let deadline = Instant::now() + Duration::from_secs(15);
         loop {
-            if self.diagnostics.iter().any(|m| {
-                m["params"]["version"] == version
-                    && m["params"]["diagnostics"]
-                        .as_array()
-                        .is_some_and(|d| d.is_empty() != errors)
-            }) {
+            if self
+                .diagnostics
+                .iter()
+                .any(|m| matches_diagnostics(m, uri, version, errors))
+            {
                 return Ok(());
             }
             self.receive(deadline)?;
         }
     }
+}
+
+fn matches_diagnostics(message: &Value, uri: &str, version: u64, errors: bool) -> bool {
+    let params = &message["params"];
+    params["uri"] == uri
+        && params["version"] == version
+        && params["diagnostics"]
+            .as_array()
+            .is_some_and(|d| d.is_empty() != errors)
 }
 
 fn read_message(reader: &mut impl BufRead) -> Result<Value> {
@@ -323,7 +331,8 @@ fn smoke(root: &Path, source: &Path) -> Result<()> {
     let file = roots[0].join("sample.prg");
     let text = "func привет() { return 1; }\nvar число=привет();\n";
     fs::write(&file, text)?;
-    let doc = json!({"uri":uri(&file)?});
+    let doc_uri = uri(&file)?;
+    let doc = json!({"uri":doc_uri});
     let mut client = Client::start(&executable, &base, folders.clone())?;
     let capabilities = client.request("initialize", json!({"processId":std::process::id(),"rootUri":uri(&roots[0])?,"workspaceFolders":folders,"capabilities":{"workspace":{"workspaceFolders":true,"didChangeWatchedFiles":{"dynamicRegistration":true}},"textDocument":{"hover":{"contentFormat":["markdown"]},"completion":{"completionItem":{"snippetSupport":true}}}},"initializationOptions":{"lens_enabled":false,"ini_path":""}}))?;
     if !capabilities["capabilities"]["codeLensProvider"].is_null()
@@ -347,7 +356,7 @@ fn smoke(root: &Path, source: &Path) -> Result<()> {
         "textDocument/didOpen",
         json!({"textDocument":{"uri":doc["uri"],"languageId":"stack","version":1,"text":text}}),
     )?;
-    client.diagnostics_for(1, false)?;
+    client.diagnostics_for(&doc_uri, 1, false)?;
     let mut results = json!({"capabilities":capabilities,"actualExecutable":executable});
     for method in [
         "hover",
@@ -374,7 +383,7 @@ fn smoke(root: &Path, source: &Path) -> Result<()> {
     }
     for (version, content, errors) in [(2, "func broken( {\n", true), (3, text, false)] {
         client.notification("textDocument/didChange", json!({"textDocument":{"uri":doc["uri"],"version":version},"contentChanges":[{"text":content}]}))?;
-        client.diagnostics_for(version, errors)?;
+        client.diagnostics_for(&doc_uri, version, errors)?;
     }
     for (name, language, text, tab) in [
         (
@@ -393,13 +402,13 @@ fn smoke(root: &Path, source: &Path) -> Result<()> {
     ] {
         let path = roots[0].join(name);
         fs::write(&path, text)?;
-        let document = json!({"uri":uri(&path)?});
-        client.diagnostics.clear();
+        let document_uri = uri(&path)?;
+        let document = json!({"uri":document_uri});
         client.notification("textDocument/didOpen", json!({"textDocument":{"uri":document["uri"],"languageId":language,"version":1,"text":text}}))?;
-        client.diagnostics_for(1, false)?;
+        client.diagnostics_for(&document_uri, 1, false)?;
         let edits = client.request("textDocument/rangeFormatting", json!({"textDocument":document,"range":{"start":{"line":0,"character":0},"end":{"line":1,"character":0}},"options":{"tabSize":tab,"insertSpaces":true}}))?;
-        if !edits.is_array() {
-            return Err(format!("Invalid formatting result for {name}").into());
+        if edits.as_array().is_none_or(|edits| edits.is_empty()) {
+            return Err(format!("Expected nonempty formatting edits for {name}").into());
         }
         for (version, content, errors) in [
             (
@@ -414,7 +423,7 @@ fn smoke(root: &Path, source: &Path) -> Result<()> {
             (3, text, false),
         ] {
             client.notification("textDocument/didChange", json!({"textDocument":{"uri":document["uri"],"version":version},"contentChanges":[{"text":content}]}))?;
-            client.diagnostics_for(version, errors)?;
+            client.diagnostics_for(&document_uri, version, errors)?;
         }
         results[name] = json!({"languageId":language,"formatting":edits});
     }
@@ -447,4 +456,35 @@ fn smoke(root: &Path, source: &Path) -> Result<()> {
         .len();
     println!("LSP smoke OK: hover, symbols, tokens, formatting, diagnostics, shutdown; completion response: {completions} items");
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn diagnostics_must_match_document_version_and_expected_state() {
+        let uri = "file:///sample.sql";
+        let error =
+            json!({"params":{"uri":uri,"version":2,"diagnostics":[{"message":"Syntax error"}]}});
+        let clear = json!({"params":{"uri":uri,"version":3,"diagnostics":[]}});
+        assert!(matches_diagnostics(&error, uri, 2, true));
+        assert!(matches_diagnostics(&clear, uri, 3, false));
+        for (message, version, errors) in [(&error, 2, true), (&clear, 3, false)] {
+            assert!(!matches_diagnostics(
+                message,
+                "file:///dictionary.xdic",
+                version,
+                errors
+            ));
+            assert!(!matches_diagnostics(message, uri, version + 1, errors));
+            assert!(!matches_diagnostics(message, uri, version, !errors));
+        }
+        assert!(!matches_diagnostics(
+            &json!({"params":{"uri":uri,"version":3}}),
+            uri,
+            3,
+            false
+        ));
+    }
 }
