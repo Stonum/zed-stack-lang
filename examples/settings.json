@@ -1,0 +1,19 @@
+{
+  "lsp": {
+    "stack-lang-server": {
+      "binary": {
+        "path": "E:/projects/rust/stack-lang-server/target/debug/stack-lang-server.exe",
+        "arguments": []
+      },
+      "initialization_options": {
+        "lens_enabled": false,
+        "ini_path": ""
+      }
+    }
+  },
+  "languages": {
+    "Stack": {
+      "language_servers": ["stack-lang-server"]
+    }
+  }
+}

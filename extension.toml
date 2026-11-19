@@ -1,0 +1,11 @@
+id = "stack-lang"
+name = "Stack lang"
+version = "0.1.0"
+schema_version = 1
+authors = ["stonum"]
+description = "language server for STACK software package"
+
+[language_servers.stack-lang-server]
+name = "stack lang server"
+languages = ["Stack"]
+language_ids = { Stack = "stack" }
