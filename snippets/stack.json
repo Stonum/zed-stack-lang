@@ -1,0 +1,97 @@
+{
+  "If": {
+    "prefix": "Если",
+    "body": "Если(${1:Условие})\n{\n\t$0\n}",
+    "description": "Insert an if block"
+  },
+  "If else": {
+    "prefix": "Если",
+    "body": "Если(${1:Условие})\n{\n\t$0\n}\nиначе\n{\n\t\n}",
+    "description": "Insert an if/else block"
+  },
+  "While": {
+    "prefix": "Пока",
+    "body": "Пока(${1:Условие})\n{\n\t$0\n}",
+    "description": "Insert a while loop"
+  },
+  "Switch": {
+    "prefix": "ВыборПо",
+    "body": "ВыборПо(${1:Условие})\n{\n\tВыбор ${2:Значение1}:\n\t{\n\t\t${3:}\n\t}\n\tВыбор ${4:Значение2}:\n\t{\n\t\t${5:}\n\t}\n}$0",
+    "description": "Insert a switch with two cases"
+  },
+  "Function": {
+    "prefix": "Функция",
+    "body": "Функция ${1:ИмяФункции}($2)\n{\n\t$0\n}",
+    "description": "Declare a function"
+  },
+  "Buffered reader": {
+    "prefix": "буф",
+    "body": "\nперем ${1:запрос} = BufferedReader(`\n\tselect ${2:*} \n\tfrom   ~${3:Лицевые счета}~ \n\t`, 1500, \"Par,I${0}\" );\n",
+    "description": "Read SQL rows with BufferedReader"
+  },
+  "Command": {
+    "prefix": "команд",
+    "body": "\nперем ${1:запрос} = Command(`\n\tupdate ~${2:Лицевые счета}~ \n\tset     ${3:Номер}  = ${4::1}\n\twhere   ${5:row_id = :2}\n`, 500, \"Par,I${0}\" ); \n",
+    "description": "Execute an SQL update with Command"
+  },
+  "Execute command": {
+    "prefix": "команд2",
+    "body": "\nEXEC_COMMAND(`\n\tupdate ~${2:Лицевые счета}~ \n\tSET     ${3:Номер}  = ${4::1}\n\twhere   ${5:row_id = :2}\n`);\n",
+    "description": "Execute an SQL update with EXEC_COMMAND"
+  },
+  "Query": {
+    "prefix": "сел",
+    "body": "\nперем ${1:Запрос} = Query (`\tselect ${2:*}\n\t\t\t\t\t\t\t\tfrom ~${3:Лицевые счета}~`, 500, \"p1,I${0}\" );\n",
+    "description": "Create an SQL query"
+  },
+  "Temporary hierarchy": {
+    "prefix": "темп",
+    "body": "\nОчиститьИерархию(\"${1:TempTable}\" );\nЗаполнитьИерархию( \"TempTable\", \"Лицевые счета\", \"Счета\", '${2:Список лицевых}');\n${0}   \n",
+    "description": "Clear and populate a temporary hierarchy"
+  },
+  "Execute query": {
+    "prefix": "выполнить",
+    "body": "${1:запрос}.Выполнить(${2:Параметры});\n${1:запрос}.Завершить();$0",
+    "description": "Execute and finalize a query"
+  },
+  "For each": {
+    "prefix": "длявсех",
+    "body": "ДляВсех(Элементов(${1:Массив}, ${2:Элемент}))\n{\n\n}$0",
+    "description": "Iterate over an array"
+  },
+  "For each two levels": {
+    "prefix": "длявсех2",
+    "body": "ДляВсех(Элементов(${1:Массив}, ${2:Элемент1}))\n{\n\tДляВсех(Элементов(${1:Массив}[ ${2:Элемент1}, ${3:Элемент2} ]))\n\t{\n\n\t}\n}$0",
+    "description": "Iterate over two array levels"
+  },
+  "For each three levels": {
+    "prefix": "длявсех3",
+    "body": "ДляВсех(Элементов(${1:Массив}, ${2:Элемент1}))\n{\n\tДляВсех(Элементов(${1:Массив}[ ${2:Элемент1}], ${3:Элемент2}))\n\t{\n\t\tДляВсех(Элементов(${1:Массив}[ ${2:Элемент1}, ${3:Элемент2} ], ${4:Элемент3}))\n\t\t{\n\n\t\t}\n\t}\n}$0",
+    "description": "Iterate over three array levels"
+  },
+  "If next row": {
+    "prefix": "еслислед",
+    "body": "${1:з_зап}.УстановитьПараметры(${2:парам});\nЕсли(${1:з_зап}.Следующий())\n{\n\n}$0",
+    "description": "Set query parameters and read one row"
+  },
+  "If next row else": {
+    "prefix": "еслислед",
+    "body": "${1:з_зап}.УстановитьПараметры(${2:парам});\nЕсли(${1:з_зап}.Следующий())\n{\n\n}\nИначе\n{\n\n}$0",
+    "description": "Read one row with an else block"
+  },
+  "While next row": {
+    "prefix": "покаслед",
+    "body": "${1:з_зап}.УстановитьПараметры(${2:парам});\nПока(${1:з_зап}.Следующий())\n{\n$0\n}",
+    "description": "Iterate over query rows"
+  },
+  "Try catch finally": {
+    "prefix": "попытка",
+    "body": "Попытка\n{\n\t${0:}\n}\nИсключение(e)\n{\n\n}\nЗаключение\n{\n\n}",
+    "description": "Handle exceptions with a finally block"
+  },
+  "Transaction": {
+    "prefix": "транзакция",
+    "body": "перем оСессия = СессияБД(0, @{\"КоличествоСессий\": 1});\nоСессия.НачатьТранзакцию();\n\nПопытка\n{\n\t${0:}\n\tоСессия.ФиксироватьТранзакцию();\n}\nИсключение (e)\n{\n\tоСессия.ОткатитьТранзакцию();\n\tВызватьИсключение e.thrown;\n}\nЗаключение\n{\n\n}",
+    "description": "Commit a database transaction or roll it back on error"
+  }
+}

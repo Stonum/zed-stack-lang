@@ -4,6 +4,7 @@ version = "0.1.0"
 schema_version = 1
 authors = ["stonum"]
 description = "language server for STACK software package"
+snippets = ["snippets/stack.json"]
 
 [language_servers.stack-lang-server]
 name = "stack lang server"
