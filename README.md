@@ -36,6 +36,8 @@ If neither source provides a binary, the extension downloads the Stack language 
 
 Defaults: `lens_enabled=false`, `ini_path=""`. Set `lsp.stack-lang-server.initialization_options.ini_path` when needed, then restart the language server. Empty string selects workspace discovery. Keep lenses disabled because Stack navigation commands require a client implementation.
 
+Stack LSP discovers its workspace folders and registers file watchers at startup. With workspace discovery, Zed can start a separate server for each worktree. To navigate between those roots, point each worktree's `ini_path` at the same `stack.ini` and list the source directories from all roots under `[AppPath]`. After adding or removing folders in VS Code, reload the window so the server discovers the updated workspace.
+
 ## Versioning
 
 When adopting a server release, update the tag and both platform assets and hashes together in `server-release.json`. The downloader embeds this file at build time, and Windows CI reads the same file for the smoke test. Record the changes users will see in `CHANGELOG.md` and link to the server release notes.
@@ -74,7 +76,7 @@ git -C .local/tree-sitter-xml checkout 5000ae8f22d11fbe93939b05c1e37cf21117162d
 cargo run --locked -p stack-dev -- xml-queries
 ```
 
-The native smoke additionally opens deliberately unformatted resources, dictionaries and SQL and requires nonempty formatting edits for each. Every diagnostic error/clear check matches the document URI, version and expected diagnostic state, even when other documents have published the same version. Its IDs are test inputs; editor IDs require the separate Zed trace. Smoke artifacts live in `.local/lsp-smoke`. Closed-file watching, dynamic workspace roots and the extended editor acceptance matrix remain unverified; SQL injection highlighting is not provided.
+The native smoke additionally opens deliberately unformatted resources, dictionaries and SQL and requires nonempty formatting edits for each. Every diagnostic error/clear check matches the document URI, version and expected diagnostic state, even when other documents have published the same version. Its IDs are test inputs; editor IDs require the separate Zed trace. Smoke artifacts live in `.local/lsp-smoke`. See the [roadmap](ROADMAP.md) for editor acceptance results and remaining checks. SQL injection highlighting is not provided.
 
 The native `smoke` command copies the supplied server into `.local/lsp-smoke/server with spaces.exe`, uses two isolated workspace folders, and writes `trace.jsonl`, `results.json` and `stderr.txt` there. It checks hover, the completion response shape (an empty list is valid), symbols, semantic tokens, formatting, diagnostic error/clear and shutdown. It waits for Stack readiness and diagnostics with timeouts; it is not a Zed UI test.
 
