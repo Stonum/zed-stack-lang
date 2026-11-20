@@ -37,6 +37,40 @@ func empty() {}
     (block)))
 
 ==================
+Quoted handler names
+==================
+Функция 'Обновить список'(Событие) { Вернуть 1; }
+func Tools.'Show details'() {}
+func ordinary() {}
+---
+
+(source_file
+  (function_declaration
+    (keyword)
+    (qualified_name
+      (quoted_identifier))
+    (parameters
+      (parameter
+        (identifier)))
+    (block
+      (return_statement
+        (keyword)
+        (number))))
+  (function_declaration
+    (keyword)
+    (qualified_name
+      (identifier)
+      (quoted_identifier))
+    (parameters)
+    (block))
+  (function_declaration
+    (keyword)
+    (qualified_name
+      (identifier))
+    (parameters)
+    (block)))
+
+==================
 Collections and loops
 ==================
 var items = @[1, null, true];

@@ -282,7 +282,7 @@
       "members": [
         {
           "type": "SYMBOL",
-          "name": "identifier"
+          "name": "_name_part"
         },
         {
           "type": "REPEAT",
@@ -295,12 +295,29 @@
               },
               {
                 "type": "SYMBOL",
-                "name": "identifier"
+                "name": "_name_part"
               }
             ]
           }
         }
       ]
+    },
+    "_name_part": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "identifier"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "quoted_identifier"
+        }
+      ]
+    },
+    "quoted_identifier": {
+      "type": "PATTERN",
+      "value": "'[^'\\r\\n]*'"
     },
     "parameters": {
       "type": "SEQ",

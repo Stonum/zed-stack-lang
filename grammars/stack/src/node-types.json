@@ -1883,6 +1883,10 @@
         {
           "type": "identifier",
           "named": true
+        },
+        {
+          "type": "quoted_identifier",
+          "named": true
         }
       ]
     }
@@ -2903,6 +2907,10 @@
   },
   {
     "type": "number",
+    "named": true
+  },
+  {
+    "type": "quoted_identifier",
     "named": true
   },
   {
