@@ -4,19 +4,23 @@ use zed_extension_api::{
     Command, LanguageServerId, Result, Worktree,
 };
 
+mod server_download;
+
 struct StackExtension;
 
 fn resolve_command(
     binary: Option<&CommandSettings>,
     fallback: Option<&CommandSettings>,
     shell_env: zed::EnvVars,
-    which: impl FnOnce() -> Option<String>,
+    discover: impl FnOnce() -> Result<String>,
 ) -> Result<Command> {
-    let command = binary
+    let explicit_path = binary
         .and_then(|b| b.path.clone())
-        .or_else(|| fallback.and_then(|b| b.path.clone()))
-        .or_else(which)
-        .ok_or("Stack language server was not found. Set lsp.stack-lang-server.binary.path (or lsp.stack-sql-server.binary.path for SQL) or add stack-lang-server to PATH.")?;
+        .or_else(|| fallback.and_then(|b| b.path.clone()));
+    let command = match explicit_path {
+        Some(path) => path,
+        None => discover()?,
+    };
     let args = binary
         .and_then(|b| b.arguments.clone())
         .or_else(|| fallback.and_then(|b| b.arguments.clone()))
@@ -54,7 +58,10 @@ impl zed::Extension for StackExtension {
             settings.binary.as_ref(),
             fallback.as_ref(),
             worktree.shell_env(),
-            || worktree.which("stack-lang-server"),
+            || match worktree.which("stack-lang-server") {
+                Some(path) => Ok(path),
+                None => server_download::install(id),
+            },
         )
     }
 
@@ -144,9 +151,9 @@ mod tests {
     fn path_lookup_is_used_only_without_configured_paths() {
         let sql = settings(serde_json::json!({"arguments": ["--sql"]}));
         let command =
-            resolve_command(Some(&sql), None, vec![], || Some("from-path.exe".into())).unwrap();
+            resolve_command(Some(&sql), None, vec![], || Ok("from-path.exe".into())).unwrap();
         assert_eq!(command.command, "from-path.exe");
         assert_eq!(command.args, ["--sql"]);
-        assert!(resolve_command(None, None, vec![], || None).is_err());
+        assert!(resolve_command(None, None, vec![], || Err("Discovery failed".into())).is_err());
     }
 }

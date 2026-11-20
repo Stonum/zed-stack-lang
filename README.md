@@ -1,6 +1,6 @@
 # Stack for Zed — local development
 
-Stack Tree-sitter grammar and local stdio LSP integration. This project is not ready for the extension catalog.
+Stack Tree-sitter grammar and stdio LSP integration. See [the roadmap](ROADMAP.md) for the remaining server and catalog work.
 
 ## Build and test
 
@@ -30,7 +30,9 @@ The grammar can later be extracted into its own repository, or referenced from a
 
 ## Local LSP configuration
 
-Merge `examples/settings.json` into your test project's `.zed/settings.json` and adjust `binary.path`. Use a plain absolute executable path, without embedded quotes, even when it contains spaces. Arguments are separate array entries. `binary.env` overrides the inherited shell environment. When neither the server's settings nor its fallback below supplies `binary.path`, the extension uses `worktree.which("stack-lang-server")`; restart Zed after changing PATH. This lookup uses the worktree's PATH, before `binary.env` overrides are applied to the launched process. There is no downloader.
+To use a local build, merge `examples/settings.json` into your test project's `.zed/settings.json` and adjust `binary.path`. Use a plain absolute executable path, without embedded quotes, even when it contains spaces. Arguments are separate array entries. `binary.env` overrides the inherited shell environment. Without a configured path, the extension looks for `stack-lang-server` in the worktree's PATH before applying `binary.env`. Restart Zed after changing PATH.
+
+If neither source provides a binary, the extension downloads the pinned [Stack language server v0.8.3](https://github.com/Stonum/stack-lang-server/releases/tag/v0.8.3) through Zed. This development pin has Windows x64 and Linux x64 assets. Other platforms require a local binary. The extension verifies SHA-256 before installation and reuses the verified copy in its work directory without network access. Both server registrations share the download cache. Remove the local binary path and ensure the server is absent from the worktree's PATH to test this fallback.
 
 Defaults: `lens_enabled=false`, `ini_path=""`. Set `lsp.stack-lang-server.initialization_options.ini_path` when needed, then restart the language server. Empty string selects workspace discovery. Keep lenses disabled because Stack navigation commands require a client implementation.
 
@@ -48,7 +50,7 @@ Default suffixes cover rx, rx_api, rxz, rxi, rxe, rx_z in lower/uppercase, plus 
 
 Install Zed's existing SQL extension (tested 1.1.8). The example enables `stack-sql-server` only in that project, with protocol ID `sql`. This separate opt-in registration launches its own process. Its binary settings inherit from `lsp.stack-lang-server.binary` per field:
 
-- `path`: SQL path, then Stack path, then `worktree.which("stack-lang-server")`.
+- `path`: SQL path, then Stack path, then worktree PATH, then the shared download fallback.
 - `arguments`: SQL array, then Stack array, then no arguments. An explicit SQL `[]` clears inherited arguments.
 - `env`: inherited shell environment, then Stack entries, then SQL entries, with later values winning per key. SQL `{}` retains inherited entries.
 
