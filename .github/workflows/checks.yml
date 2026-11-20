@@ -1,0 +1,58 @@
+name: Extension checks
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Prepare Rust
+        run: |
+          rustup toolchain install stable --profile minimal --component rustfmt --component clippy --target wasm32-wasip2
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          rustup default stable
+      - name: Rust checks
+        run: |
+          cargo fmt --all -- --check
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          cargo test --locked --workspace
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          cargo clippy --locked --workspace --all-targets -- -D warnings
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          cargo clippy --locked --target wasm32-wasip2 -- -D warnings
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          cargo build --locked --target wasm32-wasip2
+      - name: Test grammars and prepare local extension
+        run: |
+          cargo install tree-sitter-cli --version =0.25.10 --locked --root .local/tree-sitter-cli
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          git clone https://github.com/tree-sitter-grammars/tree-sitter-xml .local/tree-sitter-xml
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          git -C .local/tree-sitter-xml checkout 5000ae8f22d11fbe93939b05c1e37cf21117162d
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          foreach ($check in @('test','queries','xml-queries')) {
+            cargo run --locked -p stack-dev -- $check
+            if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          }
+          ./scripts/prepare-dev.ps1
+      - name: Smoke test the Windows LSP release
+        run: |
+          $server = Join-Path $PWD '.local/stack-lang-server-win32-x64.exe'
+          Invoke-WebRequest -Uri 'https://github.com/Stonum/stack-lang-server/releases/download/v0.8.3/stack-lang-server-win32-x64.exe' -OutFile $server
+          if ((Get-FileHash -LiteralPath $server -Algorithm SHA256).Hash -ne '6d01ca9b83236f2284d13988f2abb349d3e66bc9a290276d07c51782cf8e6633') {
+            throw 'Unexpected SHA-256 for the Windows LSP release'
+          }
+          cargo run --locked -p stack-dev -- smoke $server

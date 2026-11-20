@@ -4,9 +4,10 @@ Catalog submission is on hold until the language-server issues are resolved and 
 
 ## Local extension work
 
-- Add a versioned download fallback after configured binary paths and PATH. Use an existing server release for development and replace the pin once a release with the required LSP fixes passes acceptance.
-- Verify the extension from a clean checkout. Check first download, offline reuse, launch overrides, and the existing grammar, snippets, resource and SQL workflows. Verify a concrete completion result in the editor. An empty but valid completion response only verifies the protocol.
-- Retest the Windows x64 and Linux x64 binaries separately before claiming support for both platforms.
+- A versioned fallback follows configured binary paths and PATH. The development pin is v0.8.3. Replace the pin and its checksums once a release with the required LSP fixes passes acceptance.
+- On Windows, a clean checkout built the WASM extension, passed Rust and Tree-sitter checks, prepared the dev extension and passed the stdio smoke using the verified release binary. Automated tests cover rejecting bad downloads and reusing a valid cache without a network call.
+- Editor acceptance remains open for a first download and an offline restart in Zed, the Linux x64 runtime, and a concrete completion result. The stdio fixture received a valid but empty completion response. Repeat the grammar, snippets, resource and SQL checks with the server candidate before catalog submission.
+- The Windows CI workflow runs build, lint, tests and dev extension preparation. A hosted run becomes available once the repository is on GitHub.
 
 ## Common language server
 
