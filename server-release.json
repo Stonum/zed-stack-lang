@@ -1,0 +1,14 @@
+{
+  "download_base": "https://github.com/Stonum/stack-lang-server/releases/download",
+  "tag": "v0.8.3",
+  "assets": {
+    "windows-x64": {
+      "name": "stack-lang-server-win32-x64.exe",
+      "sha256": "6d01ca9b83236f2284d13988f2abb349d3e66bc9a290276d07c51782cf8e6633"
+    },
+    "linux-x64": {
+      "name": "stack-lang-server-linux-x64",
+      "sha256": "42579da44433d5cfe46461ceaec566e2710de8485c1e5b12554b8c4f1a20a296"
+    }
+  }
+}

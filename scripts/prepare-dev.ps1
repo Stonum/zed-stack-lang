@@ -9,7 +9,7 @@ git -C $repo add grammar.js src test
 git -C $repo -c user.name='Local grammar snapshot' -c user.email='local@example.invalid' commit -m 'Snapshot Stack grammar' --allow-empty
 if ($LASTEXITCODE) { throw 'grammar snapshot failed' }
 $rev = git -C $repo rev-parse HEAD
-Copy-Item "$root/Cargo.toml","$root/Cargo.lock" $dev -Force
+Copy-Item "$root/Cargo.toml","$root/Cargo.lock","$root/server-release.json" $dev -Force
 Copy-Item "$root/src","$root/languages","$root/tools","$root/licenses","$root/snippets" $dev -Recurse -Force
 $uri = ([System.Uri]($repo.Replace('\','/') + '/')).AbsoluteUri.TrimEnd('/')
 $manifest = Get-Content "$root/extension.toml" -Raw

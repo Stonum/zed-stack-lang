@@ -1,6 +1,6 @@
 # Stack for Zed — local development
 
-Stack Tree-sitter grammar and stdio LSP integration. See [the roadmap](ROADMAP.md) for the remaining server and catalog work.
+Stack Tree-sitter grammar and stdio LSP integration. See the [changelog](CHANGELOG.md) for changes and the [roadmap](ROADMAP.md) for the remaining work.
 
 ## Build and test
 
@@ -32,9 +32,15 @@ The grammar can later be extracted into its own repository, or referenced from a
 
 To use a local build, merge `examples/settings.json` into your test project's `.zed/settings.json` and adjust `binary.path`. Use a plain absolute executable path, without embedded quotes, even when it contains spaces. Arguments are separate array entries. `binary.env` overrides the inherited shell environment. Without a configured path, the extension looks for `stack-lang-server` in the worktree's PATH before applying `binary.env`. Restart Zed after changing PATH.
 
-If neither source provides a binary, the extension downloads the pinned [Stack language server v0.8.3](https://github.com/Stonum/stack-lang-server/releases/tag/v0.8.3) through Zed. This development pin has Windows x64 and Linux x64 assets. Other platforms require a local binary. The extension verifies SHA-256 before installation and reuses the verified copy in its work directory without network access. Both server registrations share the download cache. Remove the local binary path and ensure the server is absent from the worktree's PATH to test this fallback.
+If neither source provides a binary, the extension downloads the Stack language server release pinned in [server-release.json](server-release.json). The manifest lists Windows x64 and Linux x64 assets. Other platforms require a local binary. The extension verifies SHA-256 before installation and reuses the verified copy in its work directory without network access. Both server registrations share the download cache. Remove the local binary path and ensure the server is absent from the worktree's PATH to test this fallback.
 
 Defaults: `lens_enabled=false`, `ini_path=""`. Set `lsp.stack-lang-server.initialization_options.ini_path` when needed, then restart the language server. Empty string selects workspace discovery. Keep lenses disabled because Stack navigation commands require a client implementation.
+
+## Versioning
+
+When adopting a server release, update the tag and both platform assets and hashes together in `server-release.json`. The downloader embeds this file at build time, and Windows CI reads the same file for the smoke test. Record the changes users will see in `CHANGELOG.md` and link to the server release notes.
+
+When releasing the extension, move the `Unreleased` entries under the new extension version and keep the version in `extension.toml`, `Cargo.toml`, and `Cargo.lock` in sync. An extension-only change can be released with the same server pin.
 
 ## Grammar scope
 

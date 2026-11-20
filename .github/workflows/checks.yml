@@ -50,9 +50,11 @@ jobs:
           ./scripts/prepare-dev.ps1
       - name: Smoke test the Windows LSP release
         run: |
-          $server = Join-Path $PWD '.local/stack-lang-server-win32-x64.exe'
-          Invoke-WebRequest -Uri 'https://github.com/Stonum/stack-lang-server/releases/download/v0.8.3/stack-lang-server-win32-x64.exe' -OutFile $server
-          if ((Get-FileHash -LiteralPath $server -Algorithm SHA256).Hash -ne '6d01ca9b83236f2284d13988f2abb349d3e66bc9a290276d07c51782cf8e6633') {
+          $release = Get-Content -LiteralPath 'server-release.json' -Raw | ConvertFrom-Json
+          $asset = $release.assets.'windows-x64'
+          $server = Join-Path '.local' $asset.name
+          Invoke-WebRequest -Uri "$($release.download_base)/$($release.tag)/$($asset.name)" -OutFile $server
+          if ((Get-FileHash -LiteralPath $server -Algorithm SHA256).Hash -ne $asset.sha256) {
             throw 'Unexpected SHA-256 for the Windows LSP release'
           }
           cargo run --locked -p stack-dev -- smoke $server

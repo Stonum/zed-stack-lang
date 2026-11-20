@@ -849,6 +849,7 @@ dependencies = [
 name = "zed-stack-lang"
 version = "0.1.0"
 dependencies = [
+ "serde",
  "sha2",
  "zed_extension_api",
 ]
