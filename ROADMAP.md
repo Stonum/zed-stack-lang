@@ -15,7 +15,8 @@ Implement server changes in `stack-lang-server`. Keep extension-specific changes
 
 - **Closed-file index.** The server now registers watched files. Local Windows tests verified that Zed and VS Code update closed HDL symbols and RX references after external changes, including in directories listed in `stack.ini`. The VS Code client uses the server subscription. Update the pinned server release before publishing either extension with this behavior. See the local `docs/stage6a.md` for the original reproduction.
 - **Workspace roots.** The server uses the roots available at startup. In the Windows test, Zed started separate server sessions for Stack files in two worktrees. A shared `stack.ini` let one session index both source roots. VS Code supplied both folders at startup. Replacing the second folder took effect on a fresh server launch. The server advertises support for initial workspace folders and does not subscribe to folder change notifications.
-- **Client parity.** Keep CodeLens disabled until its location commands work in Zed and VS Code. Track range-based SQL transformations and standard LSP work progress as separate server work. Their implementation scope and order are independent of local extension tooling.
+- **CodeLens.** The server sends one location command for both editors. Zed can opt in with a compatible local server build. Update both extensions' pinned server release before publishing changes to CodeLens.
+- **Client parity.** Range-based SQL transformations and standard LSP work progress remain separate server tasks.
 
 ## Deferred catalog work
 

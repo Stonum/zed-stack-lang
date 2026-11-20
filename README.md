@@ -34,7 +34,17 @@ To use a local build, merge `examples/settings.json` into your test project's `.
 
 If neither source provides a binary, the extension downloads the Stack language server release pinned in [server-release.json](server-release.json). The manifest lists Windows x64 and Linux x64 assets. Other platforms require a local binary. The extension verifies SHA-256 before installation and reuses the verified copy in its work directory without network access. Both server registrations share the download cache. Remove the local binary path and ensure the server is absent from the worktree's PATH to test this fallback.
 
-Defaults: `lens_enabled=false`, `ini_path=""`. Set `lsp.stack-lang-server.initialization_options.ini_path` when needed, then restart the language server. Empty string selects workspace discovery. Keep lenses disabled because Stack navigation commands require a client implementation.
+Set `lsp.stack-lang-server.initialization_options.ini_path` when needed, then restart the language server. The default empty string selects workspace discovery.
+
+The extension enables CodeLens support on the server by default. Use Zed's `code_lens` setting to control it in the editor. `"off"` (the default) skips CodeLens requests, `"on"` displays lenses above the code, and `"menu"` puts them in the code actions menu. Navigation requires a server build that supports `editor.action.goToLocations`. Use a local build until the extension pins a release with this support.
+
+```json
+{
+  "code_lens": "on"
+}
+```
+
+If you previously set `lsp.stack-lang-server.initialization_options.lens_enabled` to `false`, remove that override and restart the language server so Zed can request lenses when enabled.
 
 Stack LSP discovers its workspace folders and registers file watchers at startup. With workspace discovery, Zed can start a separate server for each worktree. To navigate between those roots, point each worktree's `ini_path` at the same `stack.ini` and list the source directories from all roots under `[AppPath]`. After adding or removing folders in VS Code, reload the window so the server discovers the updated workspace.
 
@@ -94,8 +104,8 @@ The following assessment uses official Zed revision `2de9e435a5d98657f35c260b5f4
 
 | Feature | Confirmed support and next step |
 | --- | --- |
-| CodeLens navigation | Zed's [client command handler](https://github.com/zed-industries/zed/blob/2de9e435a5d98657f35c260b5f4dd0979df659e6/crates/editor/src/code_lens.rs) handles `editor.action.showReferences`, `editor.action.goToLocations` and `editor.action.peekLocations`. It does not recognize `stack.movetoLine` or `stack.goToLocations`. Unknown commands fall through to the code-action execution path, which skips commands absent from server executeCommand capabilities. Stack advertises only `dummy.do_something` and implements no corresponding Stack navigation handler. The public extension API cannot register an editor-command alias. Keep lenses disabled (the extension forces `lens_enabled=false`). A separate server task could emit the built-in location command with URI, position and Location[] arguments; convert a line-only target to a Location in the current document. Test single/multiple destinations and empty results in both clients before enabling lenses. |
-| CodeLens refresh | Zed advertises `workspace.codeLens.refreshSupport` and [handles refresh requests](https://github.com/zed-industries/zed/blob/2de9e435a5d98657f35c260b5f4dd0979df659e6/crates/project/src/lsp_store.rs). Stack already gates startup refresh on that capability and enabled lenses. The existing editor initialize trace confirms the capability and disabled lenses; no live lens rendering, click or refresh acceptance test was performed. Refresh support alone does not make Stack navigation commands work. |
+| CodeLens navigation | Stack sends `editor.action.goToLocations` with the source URI, source position, and target locations. Zed's [client command handler](https://github.com/zed-industries/zed/blob/2de9e435a5d98657f35c260b5f4dd0979df659e6/crates/editor/src/code_lens.rs) uses those locations to navigate. |
+| CodeLens refresh | Zed advertises `workspace.codeLens.refreshSupport` and [handles refresh requests](https://github.com/zed-industries/zed/blob/2de9e435a5d98657f35c260b5f4dd0979df659e6/crates/project/src/lsp_store.rs). Stack requests startup refresh when the client advertises this capability and lenses are enabled. |
 | SQL transformations | `stack.togglePostgreSQL`, `stack.fieldsToPostgreSQL` and `stack.toggleMsSQL` depend on VS Code selections and editor edits. Zed's [public Extension trait](https://github.com/zed-industries/zed/blob/2de9e435a5d98657f35c260b5f4dd0979df659e6/crates/extension_api/src/extension_api.rs) exposes neither arbitrary editor commands nor selection edits. A separate common-LSP task should offer range-based CodeAction + WorkspaceEdit, with explicit namespace/direction/dollar options and documented treatment of multiple selections. Zed supports code actions and workspace edits; the current Stack server does not provide these transformations. No equivalent commands are installed here. |
 | Indexing status | `custom/statusBar` is a VS Code-specific notification. Zed's extension installation status reports installation, not indexing. The supported future route is standard `window/workDoneProgress/create` and `$/progress` begin/report/end, gated on `window.workDoneProgress`; Zed advertises and handles these. Add this in a separate common-LSP task, preserve existing clients as needed, and test completion/error/cancellation cleanup. No live progress UI test or custom-notification adapter is claimed. |
 

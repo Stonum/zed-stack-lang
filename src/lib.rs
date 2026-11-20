@@ -77,7 +77,9 @@ impl zed::Extension for StackExtension {
         let object = options
             .as_object_mut()
             .ok_or("Stack initialization_options must be an object.")?;
-        object.insert("lens_enabled".into(), serde_json::json!(false));
+        object
+            .entry("lens_enabled")
+            .or_insert(serde_json::json!(true));
         object.entry("ini_path").or_insert(serde_json::json!(""));
         Ok(Some(options))
     }
