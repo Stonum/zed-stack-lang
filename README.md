@@ -17,16 +17,23 @@ cargo fmt --all -- --check
 cargo clippy --locked --target wasm32-wasip2 -- -D warnings
 cargo clippy --locked -p stack-dev -- -D warnings
 cargo run --locked -p stack-dev -- smoke E:/projects/rust/stack-lang-server/target/debug/stack-lang-server.exe
-./scripts/prepare-dev.ps1
 ```
 
 The Rust development tool in `tools/` checks for CLI 0.25.10 in `.local/tree-sitter-cli/bin`, then PATH; it rejects other versions. Generation uses ABI 14 for compatibility. Generated C and headers are committed; downloaded CLI binaries and compiled artifacts are ignored. The extension and development tool share the root Cargo workspace and lockfile. Default workspace commands build only the extension; use `-p stack-dev` for native tooling.
 
 ## Install the local dev extension
 
-Run **zed: install dev extension**, selecting the absolute `.local/dev-extension` directory printed by `prepare-dev.ps1`. Do not select the repository root. Zed's builder requires a Git checkout at `grammars/stack`; the managed grammar source there deliberately has no nested repository. The script copies the extension into an ignored staging directory, snapshots grammar sources into a separate local Git repository and writes a `file:///` repository URL with an exact commit into the staged manifest. It does not publish or change global settings. Re-run it after edits, then rebuild the dev extension in Zed. Zed may download the official wasi-sdk on first build.
+1. On Windows, run this from the repository root. It writes the local `extension.toml` from `extension.toml.in` and pins a Git snapshot of the Stack grammar in `.local/`. The execution policy applies to this PowerShell process only.
 
-The grammar can later be extracted into its own repository, or referenced from a published commit of this repository using `path = "grammars/stack"`. Catalog submission needs a reachable HTTPS repository and pinned full revision under `[grammars.stack]`; local file URLs must never be submitted.
+   ```powershell
+   powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File .\scripts\prepare-dev.ps1
+   ```
+
+2. Run **zed: install dev extension** and select the **repository root**. If an earlier dev install points at `.local/dev-extension`, install again with the root selected.
+
+Zed loads the extension code and language queries directly from the project. It checks out the Stack and XML grammars under `grammars/` and builds them with the official WASI SDK, which it may download on first use. The editable Stack grammar lives in `tree-sitter/stack/`. After changing it, regenerate the parser and run `prepare-dev.ps1` again. Also rerun the script after editing `extension.toml.in` or moving the checkout. Use **Rebuild** in Zed to pick up changes.
+
+For catalog submission, use a published `extension.toml` with a reachable HTTPS URL and pinned Stack grammar revision. A published commit of this repository can supply the grammar with `path = "tree-sitter/stack"`.
 
 ## Local LSP configuration
 
@@ -52,7 +59,7 @@ Stack LSP discovers its workspace folders and registers file watchers at startup
 
 When adopting a server release, update the tag and both platform assets and hashes together in `server-release.json`. The downloader embeds this file at build time, and Windows CI reads the same file for the smoke test. Record the changes users will see in `CHANGELOG.md` and link to the server release notes.
 
-When releasing the extension, move the `Unreleased` entries under the new extension version and keep the version in `extension.toml`, `Cargo.toml`, and `Cargo.lock` in sync. An extension-only change can be released with the same server pin.
+When releasing the extension, move the `Unreleased` entries under the new extension version and keep the version in `extension.toml.in`, `Cargo.toml`, and `Cargo.lock` in sync. An extension-only change can be released with the same server pin.
 
 ## Grammar scope
 
@@ -62,7 +69,7 @@ This first grammar is not a replacement for the LSP parser. Advanced annotations
 
 ## Resources and SQL
 
-Stack Resource uses LSP ID `stack-resource`, tab size 3; Stack Dictionary uses `stack-dictionary`, tab size 4. Both use the MIT XML grammar pinned in extension.toml. Upstream highlights and license are retained. No XML-wide suffix is claimed.
+Stack Resource uses LSP ID `stack-resource`, tab size 3; Stack Dictionary uses `stack-dictionary`, tab size 4. Both use the MIT XML grammar pinned in `extension.toml.in`. Upstream highlights and license are retained. No XML-wide suffix is claimed.
 
 Default suffixes cover rx, rx_api, rxz, rxi, rxe, rx_z in lower/uppercase, plus observed RX_b2b. Other real variants include rx_api_google_auth, RX_SURVEY, rx_zi_gis_dlg and RX_ZI_GIS_temp. Suffixes are literal, not globs. Merge [stack-project.json](examples/stack-project.json) into the Stack project's `.zed/settings.json` for arbitrary rx variants and case. This opt-in glob also matches future rx suffixes; narrow it if your project has unrelated rx files. Explicit tab sizes override user settings.
 

@@ -63,7 +63,7 @@ fn grammar(root: &Path, action: &str) -> Result<()> {
             .current_dir(if action == "xml-queries" {
                 root.join(".local/tree-sitter-xml/xml")
             } else {
-                root.join("grammars/stack")
+                root.join("tree-sitter/stack")
             })
             .args(args)
             .status()?;

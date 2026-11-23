@@ -2,11 +2,11 @@
 /extension.wasm
 /.local/
 /docs/
+/extension.toml
 
-/grammars/stack/*.wasm
-/grammars/stack/.cache/
-
-/grammars/stack/parser.obj
-/grammars/stack/parser.lib
-/grammars/stack/parser.exp
-/grammars/*.wasm
+/grammars/
+/tree-sitter/stack/*.wasm
+/tree-sitter/stack/.cache/
+/tree-sitter/stack/parser.obj
+/tree-sitter/stack/parser.lib
+/tree-sitter/stack/parser.exp

@@ -48,6 +48,12 @@ jobs:
             if ($LASTEXITCODE) { exit $LASTEXITCODE }
           }
           ./scripts/prepare-dev.ps1
+          $stackGrammar = git --git-dir=.local/stack-grammar.git rev-parse HEAD
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          $manifest = Get-Content -LiteralPath 'extension.toml' -Raw
+          if (!$manifest.Contains("rev = `"$stackGrammar`"")) {
+            throw 'The dev manifest must pin the local Stack grammar snapshot'
+          }
       - name: Smoke test the Windows LSP release
         run: |
           $release = Get-Content -LiteralPath 'server-release.json' -Raw | ConvertFrom-Json
