@@ -8,14 +8,8 @@ snippets = ["snippets/stack.json"]
 
 [language_servers.stack-lang-server]
 name = "stack lang server"
-languages = ["Stack", "Stack Resource", "Stack Dictionary"]
-language_ids = { Stack = "stack", "Stack Resource" = "stack-resource", "Stack Dictionary" = "stack-dictionary" }
-
-[language_servers.stack-sql-server]
-name = "Stack SQL server (opt-in)"
-languages = ["SQL"]
-language_ids = { SQL = "sql" }
-opt_in_languages = ["SQL"]
+languages = ["Stack", "Stack Resource", "Stack Dictionary", "SQL"]
+language_ids = { Stack = "stack", "Stack Resource" = "stack-resource", "Stack Dictionary" = "stack-dictionary", SQL = "sql" }
 
 [grammars.xml]
 repository = "https://github.com/tree-sitter-grammars/tree-sitter-xml"

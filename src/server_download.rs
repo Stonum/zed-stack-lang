@@ -7,7 +7,8 @@ use zed_extension_api::{
 };
 
 const RELEASE_MANIFEST: &str = include_str!("../server-release.json");
-const LOCAL_CONFIGURATION: &str = "Set lsp.stack-lang-server.binary.path (or lsp.stack-sql-server.binary.path for SQL) or add stack-lang-server to PATH.";
+const LOCAL_CONFIGURATION: &str =
+    "Set lsp.stack-lang-server.binary.path or add stack-lang-server to PATH.";
 
 #[derive(serde::Deserialize)]
 struct Release<'a> {

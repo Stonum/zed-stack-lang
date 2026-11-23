@@ -39,7 +39,7 @@ For catalog submission, use a published `extension.toml` with a reachable HTTPS 
 
 To use a local build, merge `examples/settings.json` into your test project's `.zed/settings.json` and adjust `binary.path`. Use a plain absolute executable path, without embedded quotes, even when it contains spaces. Arguments are separate array entries. `binary.env` overrides the inherited shell environment. Without a configured path, the extension looks for `stack-lang-server` in the worktree's PATH before applying `binary.env`. Restart Zed after changing PATH.
 
-If neither source provides a binary, the extension downloads the Stack language server release pinned in [server-release.json](server-release.json). The manifest lists Windows x64 and Linux x64 assets. Other platforms require a local binary. The extension verifies SHA-256 before installation and reuses the verified copy in its work directory without network access. Both server registrations share the download cache. Remove the local binary path and ensure the server is absent from the worktree's PATH to test this fallback.
+If neither source provides a binary, the extension downloads the Stack language server release pinned in [server-release.json](server-release.json). The manifest lists Windows x64 and Linux x64 assets. Other platforms require a local binary. The extension verifies SHA-256 before installation and reuses the verified copy in its work directory without network access. Remove the local binary path and ensure the server is absent from the worktree's PATH to test this fallback.
 
 Set `lsp.stack-lang-server.initialization_options.ini_path` when needed, then restart the language server. The default empty string selects workspace discovery.
 
@@ -65,7 +65,7 @@ When releasing the extension, move the `Unreleased` entries under the new extens
 
 `.prg`, `.hdl`, `.rpt` and uppercase equivalents share Stack syntax. Implemented: case-insensitive Russian/English keywords, functions, classes/methods, declarations, conditionals, loops, exceptions, switch, operator precedence, calls/members/subscripts, collections, numbers/dates/times, quoted and multiline strings, comments, and RPT Form Feed headers/sections. Queries provide highlights, bracket pairs, indentation and outline. Tree-sitter recovery preserves subsequent declarations after malformed statements; missing delimiters may produce ERROR/MISSING nodes while editing.
 
-This first grammar is not a replacement for the LSP parser. Advanced annotations, destructuring, anonymous functions and string interpolation need further coverage. Embedded SQL stays string content. Resources, dictionaries, opt-in standalone SQL and snippets are described below; distribution is a later stage.
+This first grammar is not a replacement for the LSP parser. Advanced annotations, destructuring, anonymous functions and string interpolation need further coverage. Embedded SQL stays string content. Resources, dictionaries, standalone SQL and snippets are described below; distribution is a later stage.
 
 ## Resources and SQL
 
@@ -73,17 +73,9 @@ Stack Resource uses LSP ID `stack-resource`, tab size 3; Stack Dictionary uses `
 
 Default suffixes cover rx, rx_api, rxz, rxi, rxe, rx_z in lower/uppercase, plus observed RX_b2b. Other real variants include rx_api_google_auth, RX_SURVEY, rx_zi_gis_dlg and RX_ZI_GIS_temp. Suffixes are literal, not globs. Merge [stack-project.json](examples/stack-project.json) into the Stack project's `.zed/settings.json` for arbitrary rx variants and case. This opt-in glob also matches future rx suffixes; narrow it if your project has unrelated rx files. Explicit tab sizes override user settings.
 
-Install Zed's existing SQL extension (tested 1.1.8). The example enables `stack-sql-server` only in that project, with protocol ID `sql`. This separate opt-in registration launches its own process. Its binary settings inherit from `lsp.stack-lang-server.binary` per field:
+Install Zed's SQL extension (tested with version 1.1.8) to register the `SQL` language. The Stack extension enables `stack-lang-server` for `.sql` files by default. Zed sends them with LSP language ID `sql` to the same server session as Stack sources, resources, and dictionaries in the worktree. The server understands Stack's SQL syntax and uses the shared `lsp.stack-lang-server` settings.
 
-- `path`: SQL path, then Stack path, then worktree PATH, then the shared download fallback.
-- `arguments`: SQL array, then Stack array, then no arguments. An explicit SQL `[]` clears inherited arguments.
-- `env`: inherited shell environment, then Stack entries, then SQL entries, with later values winning per key. SQL `{}` retains inherited entries.
-
-For example, `"stack-sql-server": {"binary": {"arguments": [], "env": {"RUST_LOG": "debug"}}}` under `lsp` keeps the Stack binary path while replacing arguments and overriding that environment key.
-
-Configure SQL initialization options under `lsp.stack-sql-server.initialization_options`; defaults disable lenses and use workspace discovery. The example selects Stack as SQL's sole server; use `["stack-sql-server", "..."]` to retain others. Remove this entry and restart servers to opt out. Keep this setting project-local.
-
-Zed 1.29.2 supports `opt_in_languages`, but a shared running server can still receive SQL documents, so SQL deliberately has a separate registration. No universal SQL language or injection highlighting is supplied.
+The project example selects `stack-lang-server` as the sole SQL server for diagnostics and formatting. If you applied an earlier version of the example, update the SQL server list to `["stack-lang-server"]` and move any SQL-specific overrides you still need into `lsp.stack-lang-server`, where they apply to the shared session.
 
 Additional native query checks, without npm:
 
