@@ -10,9 +10,21 @@
 (call_expression function: (identifier) @function)
 (member_expression property: (identifier) @property)
 ["(" ")" "[" "]" "{" "}"] @punctuation.bracket
-[";" "," "." ":"] @punctuation.delimiter
-(binary_expression operator: (_) @operator)
+[";" "," "."] @punctuation.delimiter
+(pair ":" @punctuation.delimiter)
+(switch_clause ":" @punctuation.delimiter)
 
 (keyword) @keyword
 [(date) (time)] @number
-["+" "-" "*" "/" "%" "=" "+=" "-=" "*=" "/=" "%=" "==" "!=" "<" ">" "<=" ">=" "&&" "||" "!" "++" "--" "?" "&" "|" "^" "~" "<<" ">>" "===" "!=="] @operator
+
+[
+  "+" "-" "*" "/" "%"
+  "=" "+=" "-=" "*=" "/=" "%="
+  "==" "!=" "<" ">" "<=" ">="
+  "&&" "||" "!" "&" "|"
+  "++" "--" "?" "..."
+] @operator
+
+(conditional_expression ":" @operator)
+(binary_expression operator: (keyword) @operator)
+(unary_expression (keyword) @operator)
